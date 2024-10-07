@@ -1,0 +1,174 @@
+1. Untuk membuat/install laravel di htdocs
+- composer create-project laravel/laravel
+
+2. Membuat Model untuk schema table beserta migrationnya
+- php artisan make:model Buku -m
+- setelah itu cek Buku.php lalu masukan table yang akan dibuat
+-protected $table = "buku";
+-protected $fillable = ['judul', 'pengarang', 'tanggal publikasi'];
+-lalu buka file bukus, tambahkan table
+$table->string('judul');
+$table->string('pengarang');
+$table->string('tanggal_publikasi');
+-lalu jalankan php artisan migrate di terminal
+
+3. Membuat fake data seeder
+- php artisan make:seeder BukuSeeder
+- lalu buka BukuSeeder
+ $faker = \Faker\Factory::create("id_ID");
+
+        for ($i=0; $i < 10; $i++) { 
+            Buku::create([
+                'judul' => $faker->sentence,
+                'pengarang' => $faker->name,
+                'tanggal_publikasi' => $faker->date
+	]);
+      }
+-lalu php artisan db:seed --class=BukuSeeder
+
+4. Membuat controller 
+- php artisan make:controller Api\BukuController --api
+
+5. php artisan serve untuk running api tanpa path
+
+6. jangan lupa menambahkan route API
+- Route::get("buku", [BukuController::class, 'index']);
+Route::get("buku", [BukuController::class, 'index']);
+Route::get("buku/{id}", [BukuController::class, 'show']);
+Route::post("buku", [BukuController::class, 'store']);
+Route::put("buku/{id}", [BukuController::class, 'update']);
+Route::delete("buku/{id}", [BukuController::class, 'destroy']);
+
+atau
+
+Route::apiResource('buku', BukuController::class);
+
+7. fun index(){
+$data = Buku::orderBy("id", "asc")->get();
+return response()->json([
+	'status' => true,
+	'message' => "data Found",
+	'data' => $data,
+],200);	
+}
+
+8. fun show(){
+$data = Buku::find($id);
+        if($data){
+            return response()->json(
+
+                [
+                    "status" => true,
+                    "massege" => "Data found",
+                    "data" => $data,
+    
+                ], 200
+            );
+        } else {
+            return response()->json(
+
+                [
+                    "status" => false,
+                    "massege" => "Data not found",
+                ], 404
+            );
+        }
+}
+
+9.fun store(){
+$payload = new Buku;
+
+        $rules = [
+            'judul' =>'required',
+            'pengarang' =>'required',
+            'tanggal_publikasi' => 'required|date',
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => "Failed create data",
+                'data' => $validator->errors(),
+            ], 500
+            );
+        }
+
+        $payload->judul =  $request->judul;
+        $payload->pengarang =  $request->pengarang;
+        $payload->tanggal_publikasi =  $request->tanggal_publikasi;
+
+        $save =  $payload->save();
+
+        return response()->json(
+            [
+                'status' => true,
+                'message' => "success create data",
+                'data' => $save,
+            ]
+        );
+}
+
+10. fun update (){
+	$payload = Buku::find($id);
+
+        if(empty($payload)){
+            return response()->json([
+                'status' => false,
+                'massge' => "Data not found",
+            ],404);
+        }
+
+        $rules = [
+            'judul' =>'required',
+            'pengarang' =>'required',
+            'tanggal_publikasi' => 'required|date',
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => "Failed create data",
+                'data' => $validator->errors(),
+            ], 500
+            );
+        }
+
+        $payload->judul =  $request->judul;
+        $payload->pengarang =  $request->pengarang;
+        $payload->tanggal_publikasi =  $request->tanggal_publikasi;
+
+        $save =  $payload->save();
+
+        return response()->json(
+            [
+                'status' => true,
+                'message' => "success update data",
+                'data' => $save,
+            ]
+        );
+}
+
+11. fun destroy(){
+	 $payload = Buku::find($id);
+
+        if(empty($payload)){
+            return response()->json([
+                'status' => false,
+                'massge' => "Data not found",
+            ], 404);
+        }
+
+        $post =  $payload->delete();
+
+        return response()->json(
+            [
+                'status' => true,
+                'message' => "success delete data",
+                'data' => $post,
+            ]
+        );
+}

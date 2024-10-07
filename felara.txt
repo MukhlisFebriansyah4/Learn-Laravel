@@ -1,0 +1,106 @@
+1.Buat BukuController 
+-php artisan make:controller BukuController --resource
+- tambahkan route di web.php 
+Route::get('buku', [BukuController::class, 'index']);
+
+2.Install guzzle http(kalau belum ada)
+-composer require guzzlehttp/guzzle
+
+3.buat 2 buah php artisan serve
+- php artisan serve
+- php artisan serve --port=8001
+4. buat view baru di resource view/buku/index.blade.php
+
+5. fun index(){
+	$client = new Client();
+        $url = "http://localhost:8000/api/buku";
+        $response = $client->request("GET", $url);
+        $content =  $response->getBody()->getContents();
+        $contentArray = json_decode($content, true);
+        $data = $contentArray['data'];
+        // print_r($data);
+
+        return view('buku.index', ['data' => $data]);
+}
+
+6. fun store() {
+	$judul = $request->judul;
+        $pengarang = $request->pengarang;
+        $tanggal_publikasi = $request->tanggal_publikasi;
+
+        $payload = [
+
+            "judul" => $judul,
+            "pengarang" => $pengarang,
+            "tanggal_publikasi" => $tanggal_publikasi,
+
+        ];
+
+        $client = new Client();
+        $url = "http://localhost:8000/api/buku";
+        $response = $client->request("POST", $url, [
+            'headers'=>['Content-type'=>'application/json'],
+            'body' => json_encode($payload),
+        ]);
+
+        $content =  $response->getBody()->getContents();
+        $contentArray = json_decode($content, true);
+
+        if($contentArray['status'] != true){
+            $error = $contentArray['data'];
+            return redirect()->to('buku')->withErrors($error);
+        }else{
+            return redirect()->to('buku');
+        }
+}
+
+10. fun edit(){
+	$client = new Client();
+        $url = "http://localhost:8000/api/buku/$id";
+        $response = $client->request("GET", $url);
+        $content =  $response->getBody()->getContents();
+        $contentArray = json_decode($content, true);
+
+        if ($contentArray['status'] != true) {
+            $error = $contentArray['message'];
+
+            return redirect()->to('buku')->withErrors($error);
+        }else{
+            $data = $contentArray['data'];
+            return view('buku.index', ['data' => $data]);
+        }
+}
+
+11. Fun update(){
+
+$client = new Client();
+        $url = "http://localhost:8000/api/buku/$id";
+        $response = $client->request("GET", $url);
+        $content =  $response->getBody()->getContents();
+        $contentArray = json_decode($content, true);
+
+        if ($contentArray['status'] != true) {
+            $error = $contentArray['message'];
+
+            return redirect()->to('buku')->withErrors($error);
+        }else{
+            $data = $contentArray['data'];
+            return view('buku.index', ['data' => $data]);
+        }
+}
+
+12. fun destroy(){
+	$client = new Client();
+        $url = "http://localhost:8000/api/buku/$id";
+        $response = $client->request("DELETE", $url);
+
+        $content =  $response->getBody()->getContents();
+        $contentArray = json_decode($content, true);
+
+        if($contentArray['status'] != true){
+            $error = $contentArray['data'];
+            return redirect()->to('buku')->withErrors($error);
+        }else{
+            return redirect()->to('buku');
+        }
+}
